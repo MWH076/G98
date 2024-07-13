@@ -10,29 +10,20 @@
 
 <body>
     <div id="game-container">
-        <h1>Catch the Ball</h1>
-        <button id="start-button">Start Game</button>
-        <div id="game-area">
-            <div id="ball"></div>
+        <h1>Mini Game</h1>
+        <button id="login-btn">Login with Google</button>
+        <div id="game">
         </div>
-        <p id="score">Score: 0</p>
+        <div id="leaderboard">
+            <h2>Leaderboard</h2>
+            <ul id="leaderboard-list"></ul>
+        </div>
+        <button id="play-again-btn" style="display:none;">Play Again</button>
     </div>
-
-    <div id="auth-container">
-        <button id="login-button">Login with Google</button>
-        <button id="logout-button">Logout</button>
-        <p id="user-info"></p>
-    </div>
-
-    <div id="leaderboard-container">
-        <h2>Leaderboard</h2>
-        <ul id="leaderboard"></ul>
-    </div>
-
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="script.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+    <script src="scripts.js"></script>
 </body>
 
 </html>

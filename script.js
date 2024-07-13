@@ -1,4 +1,3 @@
-// script.js
 const firebaseConfig = {
     apiKey: "AIzaSyCNxZAN1dqjTI0zWVzq_fuWxb2GYXmr2wc",
     authDomain: "g098-aae09.firebaseapp.com",
@@ -9,77 +8,66 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+var db = firebase.firestore();
 
-const startButton = document.getElementById('start-button');
-const gameArea = document.getElementById('game-area');
-const ball = document.getElementById('ball');
-const scoreDisplay = document.getElementById('score');
-const loginButton = document.getElementById('login-button');
-const logoutButton = document.getElementById('logout-button');
-const userInfo = document.getElementById('user-info');
-const leaderboard = document.getElementById('leaderboard');
+const loginBtn = document.getElementById('login-btn');
+const playAgainBtn = document.getElementById('play-again-btn');
+const leaderboardList = document.getElementById('leaderboard-list');
+const gameContainer = document.getElementById('game');
 
-let score = 0;
-let gameInterval;
-let user = null;
-
-loginButton.onclick = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-logoutButton.onclick = () => auth.signOut();
-
-auth.onAuthStateChanged((user) => {
-    if (user) {
-        userInfo.textContent = `Logged in as ${user.displayName}`;
-        loginButton.style.display = 'none';
-        logoutButton.style.display = 'block';
-        loadLeaderboard();
-    } else {
-        userInfo.textContent = '';
-        loginButton.style.display = 'block';
-        logoutButton.style.display = 'none';
-    }
+loginBtn.addEventListener('click', () => {
+    var provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider).then((result) => {
+        loginBtn.style.display = 'none';
+        startGame(result.user);
+    }).catch((error) => {
+        console.log(error);
+    });
 });
 
-startButton.onclick = () => {
-    score = 0;
-    scoreDisplay.textContent = `Score: ${score}`;
-    ball.style.display = 'block';
-    moveBall();
-    gameInterval = setInterval(moveBall, 1000);
-};
+function startGame(user) {
+    gameContainer.innerHTML = 'Click as fast as you can!';
+    let score = 0;
+    let startTime = Date.now();
+    gameContainer.addEventListener('click', () => {
+        score++;
+        if (Date.now() - startTime >= 10000) {
+            endGame(user, score);
+        }
+    });
+}
 
-ball.onclick = () => {
-    score++;
-    scoreDisplay.textContent = `Score: ${score}`;
-};
+function endGame(user, score) {
+    gameContainer.innerHTML = `Game Over! Your score: ${score}`;
+    saveScore(user, score);
+    playAgainBtn.style.display = 'block';
+}
 
-function moveBall() {
-    const x = Math.floor(Math.random() * (gameArea.clientWidth - 50));
-    const y = Math.floor(Math.random() * (gameArea.clientHeight - 50));
-    ball.style.left = `${x}px`;
-    ball.style.top = `${y}px`;
+function saveScore(user, score) {
+    db.collection('scores').add({
+        user: user.displayName,
+        score: score,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        loadLeaderboard();
+    }).catch((error) => {
+        console.error('Error writing document: ', error);
+    });
 }
 
 function loadLeaderboard() {
-    leaderboard.innerHTML = '';
-    db.collection('leaderboard').orderBy('score', 'desc').limit(10).get().then((snapshot) => {
-        snapshot.forEach((doc) => {
-            const li = document.createElement('li');
-            li.textContent = `${doc.data().name}: ${doc.data().score}`;
-            leaderboard.appendChild(li);
+    leaderboardList.innerHTML = '';
+    db.collection('scores').orderBy('score', 'desc').limit(10).get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+            let li = document.createElement('li');
+            li.textContent = `${doc.data().user}: ${doc.data().score}`;
+            leaderboardList.appendChild(li);
         });
     });
 }
 
-function saveScore() {
-    if (user) {
-        db.collection('leaderboard').add({
-            name: user.displayName,
-            score: score,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-    }
-}
-
-window.onbeforeunload = saveScore;
+playAgainBtn.addEventListener('click', () => {
+    playAgainBtn.style.display = 'none';
+    gameContainer.innerHTML = 'Click as fast as you can!';
+    startGame(firebase.auth().currentUser);
+});
